@@ -1,0 +1,35 @@
+version: '3.9'
+
+services:
+  db:
+    image: postgres:13
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/
+    environment:
+      POSTGRES_DB: library_db
+      POSTGRES_USER: library_db_user
+      POSTGRES_PASSWORD: library_db_password
+    ports:
+      - "5432:5432"
+
+  web:
+    build: .
+    command: sh -c "python manage.py migrate && python manage.py runserver 0.0.0.0:8000"
+    volumes:
+      - .:/app
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+
+  test:
+    build: .
+    command: pytest --cov=books
+    volumes:
+      - .:/app
+    depends_on:
+      - db
+      - web
+
+volumes:
+  postgres_data:
